@@ -1,0 +1,58 @@
+<!doctype html>
+
+<html lang="en,es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba técnica Alberto</title>
+  <meta name="author" content="Alberto">
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <script type="module" src="src/app.js"></script>
+  <div class='container'>
+    <div>Idioma : <select name="lang" class="language-selector"></select></div>
+    <div>
+      Agrupar por : 
+      <select name='treeGroup' class='treeGroup'>
+        <option value='' selected>-</option>
+        <option value='id'>Id</option>
+        <option value='uid'>Uid</option>
+        <option value='puid'>Puid</option>
+        <option value='puidSeq'>Puid Seq</option>
+        <option value='calldate'>Fecha</option>
+        <option value='account'>Cuenta</option>
+        <option value='service'>Servicio</option>
+        <option value='serviceId'>Id servicio</option>
+        <option value='destination'>Destino/Agente</option>
+        <option value='destinationId'>Id Destino/Agente</option>        
+        <option value='source'>Núm. Contacto</option>
+        <option value='province'>Provincia</option>
+        <option value='duration'>Duración</option>
+        <option value='disposition'>Estado</option>
+        <option value='cdrHost'>CDR Host</option>
+        <option value='note'>Texto</option>
+        <option value='poll'>Encuesta</option>
+        <option value='isWav'>WAV</option>
+        <option value='uniqueid'>Id única</option>
+        <option value='accountId'>Id Cuenta</option>
+        <option value='geonum'>Geonum</option>
+        <option value='geoname'>Geoname</option>
+        <option value='played'>Played</option>
+        <option value='hasrecord'>Grabación</option>
+        <option value='hasfax'>Fax</option>
+      </select>
+  </div>
+    <div class='table-container'>
+        <table class="ui-table table table-striped" cellspacing="0" width="100%">
+            <thead class="ui-table-header">
+                <tr class="ui-table-header-row"></tr>
+            </thead>
+            <tbody class="ui-table-body"></tbody>
+        </table>
+    </div>
+  </div>
+</body>
+</html>
