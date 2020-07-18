@@ -40,24 +40,26 @@ const removeChilds = element => {
         }
     }
 }
+
 /**
  * Sort the array by element clicked. Second click reverses order.
  */
 const sortFunction = e => {
+    //Styling the head clicked
     e.preventDefault();
+    let headerClicked = e.target;
+    let orderType = headerClicked.getAttribute('orderType');
     Array.from(document.getElementsByClassName('order-header')).forEach(el => {
         el.setAttribute('class', 'order-header');
         el.setAttribute('orderType', '');
         if(el.innerHTML.indexOf('<') >= 0)
             el.innerHTML = el.innerHTML.substring(0,  el.innerHTML.indexOf('<'));
     });
-    let headerClicked = e.target;
     headerClicked.setAttribute('class', 'order-header active');
-    let orderType = headerClicked.getAttribute('orderType');
     orderType = !orderType ? defaultOrder : orderType == 'desc' ? 'asc' : 'desc';
     headerClicked.setAttribute('orderType', orderType);
-    headerClicked.innerHTML = headerClicked.innerHTML + '<i class="fa fa-fw fa-sort-'+orderType+'"></i>';
-    loadData(headerClicked.getAttribute('propName'), orderType, groupSelect.selectedOptions[0].value);
+    headerClicked.innerHTML = headerClicked.innerHTML + '<i class="arrow fa fa-fw fa-sort-'+orderType+'"></i>';
+    loadData(headerClicked.getAttribute('propName'), orderType, groupSelect.selectedOptions[0].value);    
 };
 /**
  * Reload the UI by the selected language
@@ -65,35 +67,18 @@ const sortFunction = e => {
 const reloadLanguage = lang => {
     removeChilds(languageSelect); //refresh inner html
     removeChilds(tableHeader);
-
-    let opts = language[lang];
-    opts.forEach((opt) => {
-        let option = document.createElement('option');
-        option.value = opt.value;
-        option.innerHTML = opt.desc;
-        if(opt.value == lang)
-            option.selected = true;
-        languageSelect.appendChild(option);
-    });    
-    let headerData = headers[lang];
-    headerData.forEach((head) => {
-        let header = document.createElement('th');
-        if(head.value !== '')  {
-            header.setAttribute('propName', head.value);
-        }
-        header.setAttribute('class', 'order-header')
-        header.innerHTML = head.desc;
-        header.addEventListener('click', sortFunction);
-        tableHeader.appendChild(header);
-    });
+    //Fill language options
+    languageSelect.innerHTML = language[lang].map((opt) => '<option value="' + opt.value + '" '+(opt.value == lang ? 'selected' : '')+'>'+opt.desc+'</option>').join('');    
+    //Fill new language table header
+    tableHeader.innerHTML = headers[lang].map((head, idx) => '<th class="order-header" propIdx="'+idx+'" propName="'+head.value+'">' + head.desc + '</th>').join('');
+    tableHeader.childNodes.forEach((th) => th.addEventListener('click', sortFunction));
 };
 /**
  * Load the content table
  */
 const loadData = (field, orderType, group) => {
-    removeChilds(tableBody);
-    
-    if(group) {
+    tableBody.innerHTML = '';
+    if(group) { //if group, remove childs         
         let dataGrouped = data.reduce((objectKeyValue, obj) => {
             const val = obj[group];
             objectKeyValue[val] = (objectKeyValue[val] || []).concat(obj);
@@ -101,91 +86,56 @@ const loadData = (field, orderType, group) => {
         }, {});
         buildGroupedRows(dataGrouped, field, orderType);
     } else {
-        let dataOrdered = data;
-         if(field !== undefined)
-            dataOrdered = data.sort((a, b) => {
+        tableBody.innerHTML = 
+            data.sort((a, b) => {
                 let negate = orderType === 'asc' ? -1 : 1;
                 return  a[field] > b[field] ? (1 * negate) : (-1 * negate);
-            });
-        dataOrdered.forEach((row) => {
-            let tr = document.createElement('tr');
-            buildRow(row, tr);
-            tableBody.appendChild(tr);
-        });
+            }).map((row) => {
+                let tr =  '<tr>' + buildRow(row) + '</tr>';
+                return tr;
+            }).join('');
     }
 }
-
+//Build the group view of table
 const buildGroupedRows = (dataGrouped, field, orderType) => {
-    Object.getOwnPropertyNames(dataGrouped).forEach((group) => {
-        let tr = document.createElement('tr');
-        let th = document.createElement('th');
-        th.innerHTML = group;
-        th.setAttribute("colspan", totalHeader);
-        tr.appendChild(th);
-        tableBody.appendChild(tr);
-       
-        dataGrouped[group].sort((a, b) => {
-                let negate = orderType === 'asc' ? -1 : 1;
-                return  a[field] > b[field] ? (1 * negate) : (-1 * negate);})
-            .forEach(row => {
-                let trData = document.createElement('tr');
-                buildRow(row, trData);
-                tableBody.appendChild(trData);
-            });
-    })
+    tableBody.innerHTML = Object.getOwnPropertyNames(dataGrouped).map((group) => {
+        let grouped = dataGrouped[group].sort((a, b) => {
+            let negate = orderType === 'asc' ? -1 : 1;
+            return  a[field] > b[field] ? (1 * negate) : (-1 * negate);})
+        .map((row) => {
+            let tr =  '<tr>' + buildRow(row) + '</tr>';
+            return tr;
+        }).join('');
+        return '<tr><td class="grouper" colspan="'+totalHeader+'">'+group+'</td></tr>'+ grouped;
+    }).join('');
 };
 
 
 /**
  * Build the data for a content table row
  */
-const buildRow = (rowData, tr) => {
+const buildRow = (rowData) => {
 
-    let tdService = document.createElement('td');
-    tdService.innerHTML = rowData.service;
-    tr.appendChild(tdService);
-    let tdDestination = document.createElement('td');
-    tdDestination.innerHTML = rowData.destination;
-    tr.appendChild(tdDestination);    
-    let tdSource = document.createElement('td');
-    tdSource.innerHTML = rowData.source;
-    tr.appendChild(tdSource);
-    let tdDate = document.createElement('td');
-    tdDate.innerHTML = convertDate(rowData.calldate);
-    tr.appendChild(tdDate);
-    let tdHour = document.createElement('td');
-    tdHour.innerHTML =  convertTime(rowData.calldate);
-    tr.appendChild(tdHour);
-    let tdDuration = document.createElement('td');
-    tdDuration.innerHTML = rowData.duration;
-    tr.appendChild(tdDuration);
-    let tdDisposition = document.createElement('td');
-    tdDisposition.innerHTML = rowData.disposition;
-    tr.appendChild(tdDisposition);
-    let tdText = document.createElement('td');
     let text = rowData.note.substring(0, 25) + '...';
-    tdText.innerHTML = text;
-    tdText.setAttribute('title', rowData.note);
-    tr.appendChild(tdText);
-    let td= document.createElement('td');
-    tr.appendChild(td);
-    td= document.createElement('td');
-    tr.appendChild(td);
-    let hasRecord = rowData.hasrecord;
-    if(hasRecord) {
-        let tdImg= document.createElement('td');
-        let img = document.createElement('img');
-        img.src = '/resources/check.png';
-        img.innerHtml = hasRecord;
-        img.setAttribute('height', '24');
-        img.setAttribute('width', '24');
-        tdImg.setAttribute('class', 'center-text');
-        tdImg.appendChild(img);
-        tr.appendChild(tdImg);
+    let rowDate = convertDate(rowData.calldate);
+    let rowTime = convertTime(rowData.calldate);
+
+    let innerHTML = '<td propname="service">' + rowData.service +'</td>'
+    + '<td>' + rowData.destination +'</td>'
+    + '<td>' + rowData.source +'</td>'
+    + '<td>' + rowDate +'</td>'
+    + '<td>' + rowTime +'</td>'
+    + '<td>' + rowData.duration +'</td>'
+    + '<td>' + rowData.disposition +'</td>'
+    + '<td title="'+rowData.note+'">' +text +'</td>'
+    + '<td >&nbsp;</td>'
+    + '<td>&nbsp;</td>';
+    if( rowData.hasrecord) {
+        innerHTML += '<td><img src="./resources/check.png" height="24" width="24" class="center-text" /></td>';        
     } else {
-        td= document.createElement('td');
-        tr.appendChild(td);
+        innerHTML += '<td>&nbsp;</td>';
     }
+   return innerHTML;
 };
 //Start page
 reloadLanguage(defaultLang);
@@ -194,7 +144,7 @@ loadData();
 languageSelect.addEventListener('change', e => {
     reloadLanguage(e.target.value);
 });
-
+//Add event to grouper selector
 groupSelect.addEventListener('change', e => {
     loadData(null, null, e.target.value);
 });
